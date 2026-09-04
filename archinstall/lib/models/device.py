@@ -1609,7 +1609,9 @@ class LsblkInfo(BaseModel):
 	ptuuid: str | None
 	rota: bool
 	tran: str | None
-	partn: int | None
+	# defaulted so hosts whose lsblk lacks the column (util-linux < 2.38)
+	# still parse; on Arch the key is always present
+	partn: int | None = None
 	partuuid: str | None
 	parttype: str | None
 	uuid: str | None

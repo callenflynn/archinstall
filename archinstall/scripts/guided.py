@@ -22,6 +22,8 @@ from archinstall.lib.network.network_handler import install_network_config
 from archinstall.lib.packages.util import check_version_upgrade
 from archinstall.lib.profile.profiles_handler import profile_handler
 from archinstall.lib.translationhandler import tr
+from archinstall.preset import runtime as preset_runtime
+from archinstall.preset.options import SetupMode
 from archinstall.tui.components import tui
 
 
@@ -100,16 +102,25 @@ def perform_installation(
 		if mirror_config := config.mirror_config:
 			installation.set_mirrors(mirror_list_handler, mirror_config, on_target=False)
 
+		# Fork: enable the CachyOS repositories on the live medium before the
+		# base pacstrap so one transaction can pull everything (incl. the
+		# cachyos-keyring + mirrorlist packages).
+		preset_runtime.prepare_repositories(config)
+
 		installation.minimal_installation(
 			optional_repositories=optional_repositories,
 			mkinitcpio=run_mkinitcpio,
 			hostname=arch_config_handler.config.hostname,
 			locale_config=locale_config,
 			pacman_config=config.pacman_config,
+			extra_base_packages=preset_runtime.base_extra_packages(config),
 		)
 
 		if mirror_config := config.mirror_config:
 			installation.set_mirrors(mirror_list_handler, mirror_config, on_target=True)
+
+		# Fork: full synchronized system upgrade inside the target chroot.
+		preset_runtime.synchronize_system(config, installation)
 
 		if config.swap and config.swap.enabled:
 			installation.setup_swap(algo=config.swap.algorithm)
@@ -169,6 +180,10 @@ def perform_installation(
 		if services := config.services:
 			installation.enable_service(services)
 
+		# Fork: desktop/dotfile/GPU/keyring finalization for preset & custom
+		# flows (no-op for vanilla guided installations).
+		preset_runtime.apply_finalize(config, installation, users)
+
 		if disk_config.has_default_btrfs_vols():
 			btrfs_options = disk_config.btrfs_options
 			snapshot_config = btrfs_options.snapshot_config if btrfs_options else None
@@ -211,7 +226,18 @@ def main(arch_config_handler: ArchConfigHandler | None = None) -> None:
 	)
 
 	if not arch_config_handler.args.silent:
-		show_menu(arch_config_handler, mirror_list_handler)
+		# Fork: the top-level 'Cal's Preset vs Custom Setup' entry choice.  It
+		# runs once per session; the selection is remembered across GlobalMenu
+		# abort/retry loops on the config.
+		if arch_config_handler.config.mode is None:
+			from archinstall.preset.flow import run_entry
+
+			run_entry(arch_config_handler, mirror_list_handler)
+
+		# The Cal preset collects everything itself; the guided menu (GlobalMenu)
+		# is only shown for the classic/custom granular flow.
+		if arch_config_handler.config.mode != SetupMode.PRESET:
+			show_menu(arch_config_handler, mirror_list_handler)
 
 	arch_config_handler.config.write_debug()
 	arch_config_handler.config.save()

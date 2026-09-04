@@ -38,6 +38,9 @@ class GreeterType(Enum):
 	CosmicSession = 'cosmic-greeter'
 	PlasmaLoginManager = 'plasma-login-manager'
 	GreetdDms = 'dms-greeter'
+	# Fork: greetd + tuigreet (used by the Cal preset and the dynamic greeter
+	# recommendation for Hyprland)
+	GreetdTuigreet = 'greetd-tuigreet'
 
 
 class SelectResult(Enum):

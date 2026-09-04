@@ -1,0 +1,66 @@
+name: Deploy documentation
+
+# Builds the Sphinx documentation site from `docs/` and publishes it to
+# GitHub Pages using the official Pages actions.
+#
+# Requirements (one-time, repository Settings -> Pages):
+#   * Source: "GitHub Actions"
+#
+# The Sphinx site is this repository's configured static-site generator, so
+# the built output (docs/_build) is uploaded. For a plain static directory
+# (e.g. hand-written HTML/Markdown without Sphinx), set upload-pages-artifact
+# `path` to './docs' instead.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install sphinx sphinx-rtd-theme
+
+      - name: Build documentation with Sphinx
+        run: sphinx-build -b html docs _build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './_build'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

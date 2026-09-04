@@ -905,6 +905,7 @@ class Installer:
 		hostname: str | None = None,
 		locale_config: LocaleConfiguration | None = LocaleConfiguration.default(),
 		pacman_config: PacmanConfiguration | None = None,
+		extra_base_packages: list[str] | None = None,
 	) -> None:
 		if self._disk_config.lvm_config:
 			lvm = 'lvm2'
@@ -940,6 +941,16 @@ class Installer:
 			optional_repositories = []
 
 		debug(f'Optional repositories: {optional_repositories}')
+
+		# Fork extension: packages that must be strapped in the *same*
+		# transaction as the base system (e.g. the CachyOS keyring and
+		# mirrorlist packages so the chroot can trust the extra repositories
+		# from the very first synchronized upgrade).
+		if extra_base_packages:
+			for package in extra_base_packages:
+				if package not in self._base_packages:
+					self._base_packages.append(package)
+			debug(f'Extra base packages: {extra_base_packages}')
 
 		# This action takes place on the host system as pacstrap copies over package repository lists.
 		pacman_conf = PacmanConfig(self.target)

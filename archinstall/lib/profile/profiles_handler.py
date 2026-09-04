@@ -178,6 +178,10 @@ class ProfileHandler:
 			case GreeterType.GreetdDms:
 				packages = ['greetd']
 				service = ['greetd']
+			case GreeterType.GreetdTuigreet:
+				packages = ['greetd', 'tuigreet']
+				service = ['greetd']
+				service_disable = ['getty@tty1']
 
 		if packages:
 			install_session.add_additional_packages(packages)
@@ -216,6 +220,24 @@ class ProfileHandler:
 				'd /var/cache/dms-greeter   0750 greeter greeter -\n'
 				'd /var/lib/greeter         0755 greeter greeter -\n',
 			)
+
+		if greeter == GreeterType.GreetdTuigreet:
+			# The fork's greetd+tuigreet greeter.  The default session command
+			# is written here so the service always has a valid configuration;
+			# the Cal preset flow overwrites it with a validated session
+			# executable during finalize (see archinstall/preset/runtime.py).
+			# Aliased because the GreetdDms branch above already uses the plain
+			# name for a local Path inside this function scope.
+			from archinstall.lib.general.greetd import greetd_config as greetd_config_text
+			from archinstall.lib.general.greetd import greetd_tmpfiles
+
+			greetd_config_path = install_session.target / 'etc/greetd/config.toml'
+			greetd_config_path.parent.mkdir(parents=True, exist_ok=True)
+			greetd_config_path.write_text(greetd_config_text())
+
+			tmpfiles = install_session.target / 'etc/tmpfiles.d/greetd-tuigreet.conf'
+			tmpfiles.parent.mkdir(parents=True, exist_ok=True)
+			tmpfiles.write_text(greetd_tmpfiles())
 
 	def install_gfx_driver(self, install_session: Installer, driver: GfxDriver) -> None:
 		debug(f'Installing GFX driver: {driver.value}')
