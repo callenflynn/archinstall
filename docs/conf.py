@@ -34,12 +34,12 @@ def setup(app) -> None:  # type: ignore[no-untyped-def]
 
 # -- Project information -----------------------------------------------------
 
-project = 'python-archinstall'
+project = 'archinstall'
 copyright = '2022, Anton Hvornum'
 author = 'Anton Hvornum'
 
 # The full version, including alpha/beta/rc tags
-release = 'v2.3.0'
+release = '4.4'
 
 # -- General configuration ---------------------------------------------------
 

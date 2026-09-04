@@ -36,6 +36,7 @@ from archinstall.lib.plugins import load_plugin
 from archinstall.lib.translationhandler import Language, tr, translation_handler
 from archinstall.lib.utils.format import as_key_value_pair
 from archinstall.lib.version import get_version
+from archinstall.preset.options import PresetOptions, SetupMode
 from archinstall.tui.components import tui
 
 
@@ -172,6 +173,13 @@ class ArchConfig:
 	timezone: str = 'UTC'
 	services: list[str] = field(default_factory=list)
 	custom_commands: list[str] = field(default_factory=list)
+
+	# Fork extension: workflow mode + runtime options that drive the preset /
+	# custom flows.  These are deliberately not part of the serializable
+	# configuration schema (safe/unsafe configs ignore them) so the fork stays
+	# compatible with upstream configuration files.
+	mode: SetupMode | None = None
+	preset: PresetOptions | None = None
 
 	def unsafe_config(self) -> dict[ArchConfigType, Any]:
 		config: dict[ArchConfigType, list[UserSerialization] | str | None] = {}
