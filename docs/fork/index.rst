@@ -8,7 +8,7 @@ top-level **entry screen** that appears the moment the guided installer is
 launched (interactive runs only):
 
 * **Cal's Preset** *(Recommended - Fast setup with Hyprland + Ambxst)*
-  A fully automated, opinionated installation.  Only four questions are
+  A fully automated, opinionated installation. Only four questions are
   asked (locale, username + password, target disk); everything else is
   derived from the preset's defaults documented in :ref:`fork.cal_preset`.
 * **Custom Setup** *(Granular step-by-step configuration)*
@@ -24,6 +24,7 @@ that upstream's ``GlobalMenu`` edits, so saved configurations, declarative
 upstream - the fork only pre-fills the answers.
 
 Highlights of the fork
+----------------------
 
 * :ref:`fork.cal_preset` - hard-coded defaults of the automated preset.
 * :ref:`fork.cachyos` - CachyOS repositories as primary package providers,

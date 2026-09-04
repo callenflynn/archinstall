@@ -5,7 +5,7 @@ Dynamic GPU detection & driver selection
 
 The installer probes the host hardware (``lspci`` output, VGA and 3D
 controllers only) and resolves a driver plan plus a concrete package list
-before the desktop profile is installed.  Detection is best-effort: any
+before the desktop profile is installed. Detection is best-effort: any
 failure falls back to the generic open-source ``mesa`` stack.
 
 Driver selection rules
@@ -45,6 +45,6 @@ the open kernel module; pre-Turing devices without such markers fall back to
 
 The resolved plan is mapped onto archinstall's regular
 ``ProfileConfiguration.gfx_driver`` when possible, so the driver selection is
-also visible and editable in the guided profile menu.  After a proprietary
+also visible and editable in the guided profile menu. After a proprietary
 NVIDIA or hybrid installation the initramfs is regenerated
 (``mkinitcpio -P``) so the driver modules are picked up on first boot.

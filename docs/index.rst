@@ -4,7 +4,7 @@ archinstall Documentation
 **archinstall** is a library which can be used to install Arch Linux.
 The library comes packaged with different pre-configured installers, such as the default :ref:`guided` installer.
 
-This fork adds a **Preset vs. Custom** installation workflow on top of the guided installer: a fully automated *Cal's Preset* (Hyprland + Ambxst dotfiles, CachyOS repositories, automatic GPU driver selection, ``greetd + tuigreet``) and the classic granular flow with opinionated defaults.  See :ref:`fork` for the full guide.
+This fork adds a **Preset vs. Custom** installation workflow on top of the guided installer: a fully automated *Cal's Preset* (Hyprland + Ambxst dotfiles, CachyOS repositories, automatic GPU driver selection, ``greetd + tuigreet``) and the classic granular flow with opinionated defaults. See :ref:`fork` for the full guide.
 
 Some of the features of Archinstall are:
 

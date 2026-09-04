@@ -4,7 +4,7 @@ CachyOS repository integration
 ==============================
 
 The fork can use the `CachyOS repositories <https://cachyos.org/>`_ as the
-primary package providers.  Repository facts used below were verified
+primary package providers. Repository facts used below were verified
 against the official `CachyOS repository installer <https://github.com/CachyOS/cachyos-repo-add-script>`_
 and the `Optimized Repositories wiki page <https://wiki.cachyos.org/features/optimized_repos/>`_.
 
@@ -41,7 +41,7 @@ Resolution rules:
 
 The generated stanzas are inserted at the **very top** of the target's
 ``/etc/pacman.conf``, *above* ``[core]`` and ``[extra]`` so CachyOS becomes
-the primary provider.  The operation is idempotent: an existing ``[cachyos]``
+the primary provider. The operation is idempotent: an existing ``[cachyos]``
 section is left untouched.
 
 .. code-block:: ini

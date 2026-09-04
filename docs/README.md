@@ -20,12 +20,12 @@ deployed to GitHub Pages by `.github/workflows/deploy-docs.yml`.
 
 ## Dependencies
 
-In order to build the docs locally, you need to have the following installed:
+To build the docs locally you need:
 
 - [sphinx](https://www.sphinx-doc.org/en/master/usage/installation.html)
 - [sphinx-rtd-theme](https://pypi.org/project/sphinx-rtd-theme/)
 
-For example, you may install these dependencies using pip:
+Install them with pip:
 
 ```
 pip install -U sphinx sphinx-rtd-theme
@@ -33,9 +33,8 @@ pip install -U sphinx sphinx-rtd-theme
 
 ## Build
 
-In `archinstall/docs`, run `make html` (or specify another target) to build
-locally. The build files will be in `archinstall/docs/_build`. Open
-`_build/html/index.html` with your browser to see your changes in action.
+Run `make html` (or pick another target) in this directory to build locally.
+The output lands in `_build/`; open `_build/html/index.html` in a browser.
 
 To validate reStructuredText and links before pushing, build with warnings
 as errors:
