@@ -2,25 +2,17 @@
 <img src="docs/logo.png" alt="archinstall logo" width="200"/>
 </div>
 
-# archinstall (Cal's Preset Fork)
+# archinstall but better
 
 An opinionated fork of archinstall featuring an automated Preset vs. Custom workflow, native CachyOS repositories, dynamic GPU detection, and drop-privileged dotfile deployment.
 
-## Features
-
-* Dual-Mode Setup:
-  * Cal's Preset (Automated): 4-prompt setup (locale, user/pass, target disk) installing Hyprland + Ambxst.
-  * Custom Setup (Granular): Classic guided installer with opinionated defaults pre-selected.
-* CachyOS Repositories: Auto-detects CPU ISA (v3, v4, znver4, or generic [cachyos]) with pre-configured keyrings and synchronized pacman -Syu.
-* Hardware & DM Matching: Probes GPUs (NVIDIA Turing+ open module, AMD, Intel, Hybrid/EnvyControl) and automatically pairs DEs with recommended DMs (e.g., Hyprland → greetd + tuigreet).
-* Secure Dotfiles: Clones and runs third-party setups strictly drop-privileged (su - <user>), repairing permissions on completion or failure.
 
 ## Quick Start
 
 Run directly from source on an official Arch Linux ISO:
 
 ```
-git clone <repository-url>
+git clone github.com/callenflynn/archinstall.git
 cd archinstall
 python -m archinstall
 ```
