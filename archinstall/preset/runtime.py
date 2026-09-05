@@ -10,7 +10,7 @@ the base pacstrap;
 * :func:`synchronize_system` - full ``pacman -Syu`` in the target chroot (after
 base, before swap/bootloader);
 * :func:`apply_finalize` - greeter config/session, GPU initramfs regeneration,
-dotfile deployment, paru and the *final* keyring trust pass (after profile
+paru, dotfile deployment and the *final* keyring trust pass (after profile
 install and service enablement, before genfstab).
 """
 
@@ -102,6 +102,10 @@ def apply_finalize(
 
 			warn(f'initramfs regeneration after GPU driver installation failed: {err}')
 
+	# --- AUR helper (before dotfiles: self-managing dotfile scripts may call it)
+	if preset.use_paru:
+		cachyos.install_paru_guarded(installation)
+
 	# --- dotfiles (Hyprland-only by design) --------------------------------
 	if desktop != Desktop.HYPRLAND:
 		debug('Dotfile deployment skipped: only relevant for Hyprland')
@@ -112,10 +116,6 @@ def apply_finalize(
 		from archinstall.lib.log import warn
 
 		warn('Dotfile deployment skipped: no regular user was configured')
-
-	# --- AUR helper (guarded, optional) -----------------------------------
-	if preset.use_paru:
-		cachyos.install_paru_guarded(installation)
 
 	# --- keyring trust (must be the very last pacman/gnupg operation) -----
 	if preset.cachyos:

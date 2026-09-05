@@ -36,8 +36,10 @@ _INSTALL_SCRIPT_NAMES = ('setup.sh', 'install.sh', 'install.fish', 'setup')
 # for the clone itself and therefore always part of the transaction.
 _COMMON_DEPENDENCIES = ['git', 'kitty', 'waybar', 'rofi-wayland']
 
-# Package manager invocations that indicate a script manages its own deps.
-_PACKAGE_MANAGER_RE = re.compile(r'\b(pacman|paru|yay|apt-get|dnf)\b')
+# Package manager *invocations* (install/sync forms) that indicate a script
+# manages its own dependencies.  A bare mention of the manager's name (comment,
+# echo, variable name, ...) does not count.
+_PACKAGE_MANAGER_RE = re.compile(r'\b(?:pacman|paru|yay|apt-get|dnf)\s+(?:-{1,2}S|install|upgrade|-(?:Sy|Syu|Syy))\b')
 
 
 @dataclass(frozen=True)
