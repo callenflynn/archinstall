@@ -289,30 +289,37 @@ def import_and_sign_key(keyserver: str = CACHYOS_KEYSERVER) -> None:
 	info('CachyOS repository signing key imported and locally signed')
 
 
-def prepare_live_environment(level: str | None) -> None:
+def prepare_live_environment(level: CachyosLevel | str | None) -> None:
 	"""
 	Enable the CachyOS repositories on the live medium *before* the base
 	pacstrap so the single base transaction can already pull from them.
+
+	``None`` disables CachyOS entirely (the user opted out); a *generic*
+	level still enables the plain ``[cachyos]`` repository without an ISA
+	suffix - it must never be conflated with the opt-out, otherwise the
+	keyring/mirrorlist packages strapped with the base system have no
+	repository to come from.
 
 	Only the live ``/etc/pacman.conf`` + mirrorlists are mutated here; the
 	target system receives its copy through ``pacman_conf.persist()`` during
 	:meth:`Installer.minimal_installation`.
 	"""
-	level = normalize_level(level)
 	if level is None:
 		return
+
+	normalized = normalize_level(level)
 
 	import_and_sign_key()
 
 	pacman_conf = Path('/etc/pacman.conf')
-	conf = inject_before_core(pacman_conf.read_text(), level)
+	conf = inject_before_core(pacman_conf.read_text(), normalized)
 	pacman_conf.write_text(conf)
 
-	for level_name in (None, level):
+	for level_name in dict.fromkeys((None, normalized)):
 		mirror_path = Path(CACHYOS_MIRROR_DIR) / mirrorlist_name(level_name)
 		_write(mirror_path, mirrorlist_content(level_name))
 
-	info(f'CachyOS repositories ({level or "generic"}) enabled on the live medium')
+	info(f'CachyOS repositories ({normalized or "generic"}) enabled on the live medium')
 
 
 def _chroot(installation: object, command: str, peek: bool = False) -> None:
@@ -322,16 +329,18 @@ def _chroot(installation: object, command: str, peek: bool = False) -> None:
 	installation.arch_chroot(command, peek_output=peek)
 
 
-def synchronize_target(installation: object, level: str | None) -> None:
+def synchronize_target(installation: object, level: CachyosLevel | str | None) -> None:
 	"""
 	Run a full synchronized system upgrade inside the target chroot.
+
+	``None`` (user opt-out) skips the upgrade; a *generic* level still runs
+	it because the plain ``[cachyos]`` repository is enabled in that case.
 
 	The installed base already contains ``cachyos-keyring``/``cachyos-mirrorlist``
 	(strapped in the same transaction as the base packages), so the chroot
 	keyring already trusts the CachyOS signature and this is a plain
 	``pacman -Syu`` - never a standalone ``pacman -Sy``.
 	"""
-	level = normalize_level(level)
 	if level is None:
 		return
 

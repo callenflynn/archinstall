@@ -47,9 +47,6 @@ doc = ["sphinx"]
 [project.scripts]
 archinstall = "archinstall.main:main"
 
-[tool.setuptools.dynamic]
-readme = {file = ["README.rst", "USAGE.rst"]}
-
 [tool.setuptools]
 include-package-data = true
 

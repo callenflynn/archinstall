@@ -78,7 +78,8 @@ Runtime sequence
    transaction* with ``pacman-key --populate cachyos archlinux`` (offline);
    a keyserver import + local sign is the fallback.
 #. **AUR helper** - when enabled, ``paru`` is installed from the configured
-   repositories; failure to install it only logs a warning.
+   repositories *before* dotfile deployment (self-managing dotfile installers
+   may invoke it); failure to install it only logs a warning.
 
 Failure handling
 ----------------

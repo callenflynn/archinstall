@@ -12,7 +12,7 @@ An opinionated fork of archinstall featuring an automated Preset vs. Custom work
 Run directly from source on an official Arch Linux ISO:
 
 ```
-git clone github.com/callenflynn/archinstall.git
+git clone https://github.com/callenflynn/archinstall.git
 cd archinstall
 python -m archinstall
 ```
