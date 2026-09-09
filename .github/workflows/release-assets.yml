@@ -1,0 +1,68 @@
+# Attach distributable assets to GitHub Releases.
+#
+# The ISO (~1.3 GiB) fits within GitHub's 2 GiB per-file release-asset
+# limit.  Together with the self-contained .pyz zipapp (see
+# test_tooling/build_zipapp.sh) this gives two install paths:
+#
+#   1. Fork ISO    - boot it, archinstall launches automatically.
+#   2. Stock Arch ISO - no git needed: download the .pyz with curl and run
+#      it with the ISO's Python (same runtime libraries as upstream
+#      archinstall, which ships on the ISO).
+#
+# The checksum file covers all assets and is attached alongside them.
+
+name: Release assets
+
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux/archlinux:latest
+      options: --privileged
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Prepare build environment
+        run: |
+          pacman-key --init
+          pacman --noconfirm -Sy archlinux-keyring
+          pacman --noconfirm -Syyu
+          # github-cli: attach assets to the release
+          # python-*: runtime libraries for the zipapp smoke test
+          pacman --noconfirm -S archiso github-cli python python-pyparted python-pydantic python-textual
+
+      - name: Build the ISO
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: ./test_tooling/mkarchiso/build_iso.sh
+
+      - name: Build the self-contained zipapp
+        run: |
+          bash test_tooling/build_zipapp.sh "${GITHUB_REF_NAME}"
+          # Stable unversioned name for the
+          # releases/latest/download/archinstall-fork.pyz URL.
+          cp "dist/archinstall-fork-${GITHUB_REF_NAME}.pyz" dist/archinstall-fork.pyz
+
+      - name: Collect assets and generate checksums
+        run: |
+          cp /tmp/archlive/out/*.iso dist/
+          cd dist
+          sha256sum -- *.iso *.pyz > SHA256SUMS.txt
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" \
+            dist/*.iso \
+            dist/*.pyz \
+            dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber

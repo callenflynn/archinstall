@@ -56,11 +56,13 @@ Hard-coded defaults
 The whole run follows the :ref:`guided` installation pipeline, so logging,
 rollback safety and error reporting behave like any other guided install.
 
-Configuring the preset in the guided menu
------------------------------------------
+Revising answers
+----------------
 
-The preset is remembered for the session: aborting/retrying from the
-``GlobalMenu`` does not re-ask the entry question. Everything the preset
-collected is written into the regular configuration objects and can be
-reviewed with ``archinstall --dry-run`` or by saving the configuration
-inside the installer (``Save configuration``), exactly like upstream.
+Everything the preset collected is written into the regular configuration
+objects and can be reviewed with ``archinstall --dry-run`` or by saving the
+configuration inside the installer (``Save configuration``), exactly like
+upstream.  Aborting the final confirmation screen re-runs the same linear
+sequence with the previous answers pre-filled - the mode question is not
+repeated.  For full granular control, ``archinstall --advanced`` opens the
+classic menu instead.

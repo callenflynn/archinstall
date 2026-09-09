@@ -226,24 +226,30 @@ def main(arch_config_handler: ArchConfigHandler | None = None) -> None:
 	)
 
 	if not arch_config_handler.args.silent:
-		# Fork: the top-level 'Cal's Preset vs Custom Setup' entry choice.  It
-		# runs once per session; the selection is remembered across GlobalMenu
-		# abort/retry loops on the config.
-		if arch_config_handler.config.mode is None:
+		# Fork: --advanced keeps the classic granular GlobalMenu; the default
+		# experience is the linear 'Cal's Preset vs Custom Setup' entry choice
+		# followed by one prompt sequence (repeated with presets when the final
+		# confirmation is aborted, so every answer can be revised).
+		if arch_config_handler.args.advanced:
+			show_menu(arch_config_handler, mirror_list_handler)
+		else:
 			from archinstall.preset.flow import run_entry
 
-			run_entry(arch_config_handler, mirror_list_handler)
+			config = arch_config_handler.config
+			# A fork-collected config (mode set) that already carries a disk
+			# layout means we are re-entering after a confirmation abort.  A
+			# config loaded via --config leaves mode unset, so it is asked for
+			# normally instead of silently overwritten.
+			recollect = config.mode is not None and config.disk_config is not None and arch_config_handler.args.config is None
 
-		# The Cal preset collects everything itself; the guided menu (GlobalMenu)
-		# is only shown for the classic/custom granular flow.
-		if arch_config_handler.config.mode != SetupMode.PRESET:
-			show_menu(arch_config_handler, mirror_list_handler)
+			if config.mode is None or recollect:
+				run_entry(arch_config_handler, mirror_list_handler, recollect=recollect)
 
 	arch_config_handler.config.write_debug()
 	arch_config_handler.config.save()
 
-	# Safety net for silent/config-file flow. The TUI menu blocks Install via
-	# GlobalMenu._validate_bootloader() before reaching this point.
+	# Safety net for silent/config-file flow. The linear flows collect a
+	# complete configuration before reaching this point.
 	if failure := validate_bootloader_layout(
 		arch_config_handler.config.bootloader_config,
 		arch_config_handler.config.disk_config,

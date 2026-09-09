@@ -31,14 +31,18 @@ _USERNAME_RE = re.compile(r'^[a-z_][a-z0-9_-]{0,31}$')
 _BLOCKED_USERNAMES = {'root', 'greeter', 'nobody'}
 
 
-async def select_setup_mode() -> SetupMode | None:
-	"""Top-level entry choice presented at the very start of the installer."""
+async def select_setup_mode(preset: SetupMode | None = None) -> SetupMode | None:
+	"""Top-level entry choice presented at the very start of the installer.
+
+	``preset`` pre-focuses a previously chosen mode (recollect pass): one
+	Enter keeps it, arrow keys allow switching flows.
+	"""
 	items = [
 		MenuItem(SetupMode.PRESET.display_name(), value=SetupMode.PRESET),
 		MenuItem(SetupMode.CUSTOM.display_name(), value=SetupMode.CUSTOM),
 	]
 	group = MenuItemGroup(items, sort_items=False)
-	group.set_selected_by_value(SetupMode.PRESET)
+	group.set_selected_by_value(preset if preset is not None else SetupMode.PRESET)
 
 	result = await Selection[SetupMode](
 		group,
@@ -55,7 +59,7 @@ async def select_setup_mode() -> SetupMode | None:
 			return None
 
 
-async def select_desktop_environment() -> Desktop | None:
+async def select_desktop_environment(preset: Desktop | None = None) -> Desktop | None:
 	items = []
 	for desktop in Desktop:
 		label = desktop.value
@@ -64,7 +68,7 @@ async def select_desktop_environment() -> Desktop | None:
 		items.append(MenuItem(label, value=desktop))
 
 	group = MenuItemGroup(items, sort_items=False)
-	group.set_selected_by_value(Desktop.KDE_PLASMA)
+	group.set_selected_by_value(preset if preset is not None else Desktop.KDE_PLASMA)
 
 	result = await Selection[Desktop](
 		group,
@@ -82,14 +86,14 @@ async def select_desktop_environment() -> Desktop | None:
 			return None
 
 
-async def select_dotfiles_suite() -> Dotfiles | None:
+async def select_dotfiles_suite(preset: Dotfiles | None = Dotfiles.AMBXST) -> Dotfiles | None:
 	items = [MenuItem('None / Vanilla', value=None)]
 
 	for dotfiles in Dotfiles:
 		items.append(MenuItem(dotfiles.display_name(), value=dotfiles))
 
 	group = MenuItemGroup(items, sort_items=False)
-	group.set_selected_by_value(Dotfiles.AMBXST)
+	group.set_selected_by_value(preset)
 
 	result = await Selection[Dotfiles | None](
 		group,
@@ -106,8 +110,16 @@ async def select_dotfiles_suite() -> Dotfiles | None:
 			return None
 
 
-async def select_greeter(desktop: Desktop, preset: GreeterType | None) -> GreeterType | None:
-	"""Greeter selection with the dynamic recommendation flagged + pre-selected."""
+async def select_greeter(
+	desktop: Desktop,
+	preset: GreeterType | None,
+	chosen: GreeterType | None = None,
+) -> GreeterType | None:
+	"""Greeter selection with the dynamic recommendation flagged + pre-selected.
+
+	``chosen`` (e.g. the previously picked greeter on a recollect pass) takes
+	focus precedence over the recommendation.
+	"""
 	recommended = recommended_greeter(desktop)
 
 	if recommended is None:
@@ -137,7 +149,7 @@ async def select_greeter(desktop: Desktop, preset: GreeterType | None) -> Greete
 		items.append(MenuItem(label, value=greeter))
 
 	group = MenuItemGroup(items, sort_items=False)
-	group.set_selected_by_value(recommended)
+	group.set_selected_by_value(chosen if chosen is not None else recommended)
 
 	result = await Selection[GreeterType](
 		group,
@@ -154,7 +166,7 @@ async def select_greeter(desktop: Desktop, preset: GreeterType | None) -> Greete
 			return None
 
 
-async def select_cachyos_repositories() -> CachyosLevel | None:
+async def select_cachyos_repositories(preset: bool = True) -> CachyosLevel | None:
 	"""
 	Offer the CachyOS repositories (opinionated default: on).  The exact ISA
 	level is detected automatically afterwards.
@@ -168,7 +180,7 @@ async def select_cachyos_repositories() -> CachyosLevel | None:
 	result = await Confirmation(
 		header=header,
 		allow_skip=False,
-		preset=True,
+		preset=preset,
 	).show()
 
 	if not result.get_value():
@@ -177,7 +189,7 @@ async def select_cachyos_repositories() -> CachyosLevel | None:
 	return CachyosLevel.GENERIC
 
 
-async def prompt_user_credentials() -> tuple[str, Password] | None:
+async def prompt_user_credentials(preset_username: str | None = None) -> tuple[str, Password] | None:
 	"""Username + password with validation (used by the Cal preset flow)."""
 
 	def validate_username(value: str | None) -> str | None:
@@ -197,6 +209,7 @@ async def prompt_user_credentials() -> tuple[str, Password] | None:
 	result = await Input(
 		header=tr('Enter a username'),
 		allow_skip=False,
+		default_value=preset_username,
 		validator_callback=validate_username,
 	).show()
 
@@ -216,10 +229,13 @@ async def prompt_user_credentials() -> tuple[str, Password] | None:
 	return username, password
 
 
-async def select_target_disk() -> DiskLayoutConfiguration | None:
+async def select_target_disk(preset: DiskLayoutConfiguration | None = None) -> DiskLayoutConfiguration | None:
 	"""
 	Single 1-click target disk selection, then automatic best-effort
 	partitioning with ext4 (no separate /home, swap handled via zram later).
+
+	``preset`` pre-focuses the disk of a previously collected layout (used on
+	the recollect pass after an aborted confirmation).
 	"""
 	devices = device_handler.devices
 
@@ -244,6 +260,12 @@ async def select_target_disk() -> DiskLayoutConfiguration | None:
 	]
 
 	group = MenuItemGroup(items, sort_items=False)
+
+	prev_path = None
+	if preset is not None and preset.device_modifications:
+		prev_path = str(preset.device_modifications[0].device_path)
+	if prev_path is not None:
+		group.set_focus_by_value(prev_path)
 
 	result = await Selection[str](
 		group,
@@ -276,6 +298,6 @@ async def select_target_disk() -> DiskLayoutConfiguration | None:
 	)
 
 
-async def select_locale() -> LocaleConfiguration | None:
-	locale_config = await LocaleMenu(LocaleConfiguration.default()).show()
+async def select_locale(preset: LocaleConfiguration | None = None) -> LocaleConfiguration | None:
+	locale_config = await LocaleMenu(preset if preset is not None else LocaleConfiguration.default()).show()
 	return locale_config

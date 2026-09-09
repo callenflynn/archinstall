@@ -111,7 +111,7 @@ def apply_opinionated_defaults(config: ArchConfig, uefi: bool, skip_boot: bool) 
 		config.pacman_config = PacmanConfiguration(parallel_downloads=10, color=True)
 
 
-def assemble_preset_config(
+def assemble_config(
 	config: ArchConfig,
 	locale_config: LocaleConfiguration,
 	mirror_config: MirrorConfiguration | None,
@@ -124,23 +124,24 @@ def assemble_preset_config(
 	gpu_packages: list[str] | None = None,
 ) -> ArchConfig:
 	"""
-	Complete the ``ArchConfig`` for the Cal's Preset (MODE A) flow.
+	Complete the ``ArchConfig`` for both linear flows (MODE A preset and MODE B
+	custom - the latter just supplies its own prompted ``options``).
 
 	Everything the guided installation consumes is derived from the prompted
-	values plus the hard-coded preset options:
+	values plus the flow options:
 
 	* ext4 best-effort disk layout, zram swap, systemd-boot on UEFI
 	* pipewire audio, paru handled at runtime (guarded), optional driver pkgs
 	* user in ``wheel`` with full sudo, root password == user password
-	* Hyprland profile with greetd + tuigreet as the greeter
+	* profile for the chosen desktop with the chosen greeter
 	"""
 	apply_opinionated_defaults(config, uefi, skip_boot)
 
 	config.locale_config = locale_config
-	config.mirror_config = mirror_config
+	config.mirror_config = mirror_config if mirror_config is not None else config.mirror_config
 	config.disk_config = disk_config
 	config.hostname = config.hostname or username
-	config.mode = SetupMode.PRESET
+	config.mode = options.mode
 
 	config.preset = options
 
@@ -169,8 +170,36 @@ def assemble_preset_config(
 
 	packages = list(gpu_packages or [])
 	if options.dotfiles is not None:
-		packages.append('git')
+		if 'git' not in packages:
+			packages.append('git')
 	if packages:
 		config.packages = packages
 
 	return config
+
+
+def assemble_preset_config(
+	config: ArchConfig,
+	locale_config: LocaleConfiguration,
+	mirror_config: MirrorConfiguration | None,
+	disk_config: DiskLayoutConfiguration,
+	username: str,
+	user_password: Password,
+	options: PresetOptions,
+	uefi: bool,
+	skip_boot: bool,
+	gpu_packages: list[str] | None = None,
+) -> ArchConfig:
+	"""Backwards-compatible alias for the preset flow (MODE A)."""
+	return assemble_config(
+		config,
+		locale_config,
+		mirror_config,
+		disk_config,
+		username,
+		user_password,
+		options,
+		uefi,
+		skip_boot,
+		gpu_packages=gpu_packages,
+	)

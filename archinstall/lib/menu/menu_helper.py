@@ -36,7 +36,10 @@ class MenuHelper[ValueT]:
 
 		if data:
 			table = as_table(data)
-			rows = table.split('\n')
+			# as_table() terminates the last data row with a newline, so a naive
+			# split() leaves an empty trailing row; splitlines() drops it and keeps
+			# the zip below aligned with the data entries.
+			rows = table.splitlines()
 
 			# these are the header rows of the table
 			display_data = {f'{rows[0]}': None, f'{rows[1]}': None}

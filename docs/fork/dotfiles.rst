@@ -22,8 +22,21 @@ Available suites (Custom Setup prompt)
      - https://github.com/caelestia-dots/caelestia
    * - end-4
      - https://github.com/end-4/dots-hyprland
+   * - ML4W
+     - https://github.com/mylinuxforwork/dotfiles (https://ml4w.com)
    * - None / Vanilla
      - no dotfiles are deployed
+
+The **ML4W** suite is deployed differently: it ships no top-level installer,
+so the fork copies its ``dotfiles/`` configuration subfolder into ``$HOME``
+(matching the suite's own ``.dotinst`` profile), stages its repository
+dependency lists through pacman, and then runs its ``setup/preflight-arch.sh``
+and ``setup/post-arch.sh`` with ``$repo_path`` exported.  Because these
+scripts call ``sudo`` internally, a *temporary* passwordless sudo grant is
+installed for the target user and revoked in a ``finally`` block once the
+deployment finishes; stdin is closed so interactive prompts cannot hang a
+non-interactive install.  AUR-only packages (quickshell, matugen, awww, ...)
+are installed by the scripts themselves via ``paru``.
 
 Cal's Preset always deploys ``Ambxst``. The Hyprland dotfiles prompt only
 appears in the Custom Setup flow when Hyprland was chosen; other desktop
@@ -46,7 +59,9 @@ Deployment steps (inside the target chroot)
 #. **Drop-privileged execution** - installer scripts run strictly as the
    target user via ``su - <username> -c <command>``. Scripts are never
    piped from remote sources (``curl | sh`` is not used) and never run as
-   root.
+   root.  (The ML4W suite is the sole exception that receives a temporary,
+   auto-revoked passwordless-sudo grant, because its scripts call ``sudo``
+   internally; see above.)
 #. **Ownership repair** - ``chown -R <username>:<username> /home/<username>/``
    is applied on success and failure so the user's home directory is
    always usable.

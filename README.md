@@ -9,7 +9,20 @@ An opinionated fork of archinstall featuring an automated Preset vs. Custom work
 
 ## Quick Start
 
-Run directly from source on an official Arch Linux ISO:
+### Option 1: The fork ISO (Recommended)
+
+Grab `archinstall-fork-<version>.iso` from the
+[latest release](https://github.com/callenflynn/archinstall/releases/latest),
+
+### Option 2: From a stock Arch ISO (no git required)
+
+
+```
+curl -LO https://github.com/callenflynn/archinstall/releases/latest/download/archinstall-fork.pyz
+sudo python archinstall-fork.pyz
+```
+
+### Option 3: From source
 
 ```
 git clone https://github.com/callenflynn/archinstall.git

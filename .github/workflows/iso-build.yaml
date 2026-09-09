@@ -15,9 +15,7 @@ on:
       - '**.md'
       - 'LICENSE'
       - 'PKGBUILD'
-  release:
-    types:
-      - created
+  # Releases are built+attached by release-assets.yml instead.
 
 jobs:
   build:

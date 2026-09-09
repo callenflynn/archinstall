@@ -11,12 +11,17 @@ launched (interactive runs only):
   A fully automated, opinionated installation. Only four questions are
   asked (locale, username + password, target disk); everything else is
   derived from the preset's defaults documented in :ref:`fork.cal_preset`.
-* **Custom Setup** *(Granular step-by-step configuration)*
-  The classic flow with the fork's defaults pre-selected: desktop
-  environment selection (KDE Plasma / Hyprland recommended), Hyprland
-  dotfiles prompt, dynamically recommended display manager, filesystem and
-  tooling defaults (ext4 + zram swap, ``paru``, ``systemd-boot``,
-  ``pipewire``).
+* **Custom Setup** *(Pick your own options, same linear flow)*
+  The identical step-by-step prompt sequence, but every answer is the
+  user's: CachyOS repositories, desktop environment (KDE Plasma /
+  Hyprland recommended), Hyprland dotfiles (Ambxst / Caelestia / end-4 /
+  ML4W), display manager with a dynamic recommendation, credentials and
+  target disk.
+
+Both modes are **strictly linear**: no nested menu, every question appears
+once, in order, and aborting the final confirmation re-runs the same
+sequence with all previous answers pre-filled for quick revision.  The
+classic granular ``GlobalMenu`` remains available via ``--advanced``.
 
 Both modes feed the **same** ``ArchConfig``/``ProfileConfiguration`` model
 that upstream's ``GlobalMenu`` edits, so saved configurations, declarative

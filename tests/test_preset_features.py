@@ -12,7 +12,7 @@ from archinstall.lib.models.application import ApplicationConfiguration, Audio, 
 from archinstall.lib.models.locale import LocaleConfiguration
 from archinstall.lib.models.users import Password
 from archinstall.preset import cachyos
-from archinstall.preset.builder import apply_opinionated_defaults, assemble_preset_config, desktop_from_profile, profile_config_for_desktop
+from archinstall.preset.builder import apply_opinionated_defaults, assemble_config, desktop_from_profile, profile_config_for_desktop
 from archinstall.preset.detect import GpuDevice, Vendor, gpu_plan, nvidia_generation, parse_pci_lines
 from archinstall.preset.display_manager import recommended_greeter, resolve_session_exec
 from archinstall.preset.dotfiles import DotfilePlan, inspect_repository
@@ -97,7 +97,7 @@ def test_assemble_preset_config_complete() -> None:
 	config = ArchConfig()
 	options = PresetOptions.cal_preset()
 
-	assemble_preset_config(
+	assemble_config(
 		config,
 		locale_config=LocaleConfiguration.default(),
 		mirror_config=None,
@@ -351,6 +351,75 @@ def test_dotfile_inspection_appends_base_packages_when_not_managed(tmp_path: Pat
 	assert plan.dependencies_handled_automatically is False
 	assert 'git' in plan.required_packages
 	assert 'kitty' in plan.required_packages
+
+
+def test_dotfile_inspection_config_subdir(tmp_path: Path) -> None:
+	# ML4W keeps its scripts inside setup/ and its configs inside dotfiles/;
+	# config_subdir must redirect the inspection (and nothing at the root
+	# must leak into the plan).
+	repo = tmp_path / 'ML4W'
+	(repo / 'dotfiles' / 'setup').mkdir(parents=True)
+	(repo / 'dotfiles' / 'setup' / 'setup.sh').write_text('#!/bin/bash\npacman -S --noconfirm waybar\n')
+	(repo / 'README.md').write_text('root level readme mentioning pacman -Syu')
+
+	plan = inspect_repository(repo, config_subdir='dotfiles')
+
+	assert plan.install_scripts == [str(repo / 'dotfiles' / 'setup' / 'setup.sh')]
+	assert plan.dependencies_handled_automatically is True
+	assert plan.required_packages == []
+
+
+def test_dotfile_ml4w_uses_setup_scripts_and_config_subdir(tmp_path: Path) -> None:
+	from archinstall.preset import dotfiles as dotfiles_module
+
+	assert 'dotfiles' == dotfiles_module._ML4W_CONFIG_SUBDIR
+	assert ('preflight-arch.sh', 'post-arch.sh') == dotfiles_module._ML4W_SETUP_SCRIPTS
+
+	for pkg in ('base-devel', 'gum', 'python-pipx', 'kitty', 'waybar'):
+		assert pkg in dotfiles_module._ML4W_STAGED_PACKAGES
+
+
+def test_dotfile_ml4w_requires_hyprland_repo_origin() -> None:
+	from archinstall.preset.options import Dotfiles as DotfilesEnum
+
+	assert DotfilesEnum.ML4W.repository == 'https://github.com/mylinuxforwork/dotfiles'
+	assert DotfilesEnum.ML4W.value == 'ML4W'
+
+
+# ---------------------------------------------------------------------------
+# 9. Linear flow assembly (preset AND custom share the same path)
+# ---------------------------------------------------------------------------
+
+
+def test_assemble_config_respects_custom_mode() -> None:
+	config = ArchConfig()
+	options = PresetOptions(
+		mode=SetupMode.CUSTOM,
+		desktop=Desktop.KDE_PLASMA,
+		dotfiles=None,
+	)
+
+	assemble_config(
+		config,
+		locale_config=LocaleConfiguration.default(),
+		mirror_config=None,
+		disk_config=None,  # type: ignore[arg-type] # untouched by the assembly
+		username='user',
+		user_password=Password(plaintext='sup3rSecret!'),
+		options=options,
+		uefi=True,
+		skip_boot=False,
+	)
+
+	# The custom linear flow produces the same config shape as the preset,
+	# only with its own mode/desktop/greeter choices.
+	assert config.mode == SetupMode.CUSTOM
+	assert config.preset is options
+	user = config.auth_config.users[0]
+	assert user.username == 'user'
+	assert user.sudo is True
+	assert 'wheel' in user.groups
+	assert config.profile_config.greeter == options.greeter
 
 
 # ---------------------------------------------------------------------------

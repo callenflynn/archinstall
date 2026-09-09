@@ -69,6 +69,7 @@ class Dotfiles(StrEnum):
 	AMBXST = 'Ambxst'
 	CAELESTIA = 'Caelestia'
 	END4 = 'end-4'
+	ML4W = 'ML4W'
 
 	@property
 	def repository(self) -> str:
@@ -79,6 +80,8 @@ class Dotfiles(StrEnum):
 				return 'https://github.com/caelestia-dots/caelestia'
 			case Dotfiles.END4:
 				return 'https://github.com/end-4/dots-hyprland'
+			case Dotfiles.ML4W:
+				return 'https://github.com/mylinuxforwork/dotfiles'
 
 	def display_name(self) -> str:
 		match self:
