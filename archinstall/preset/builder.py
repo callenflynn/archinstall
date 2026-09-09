@@ -23,7 +23,7 @@ from archinstall.lib.models.profile import ProfileConfiguration
 from archinstall.lib.models.users import Password, User
 from archinstall.lib.profile.profiles_handler import profile_handler
 from archinstall.preset.display_manager import recommended_greeter
-from archinstall.preset.options import Desktop, PresetOptions, SetupMode
+from archinstall.preset.options import Desktop, PresetOptions
 
 
 def profile_config_for_desktop(

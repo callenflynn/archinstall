@@ -23,7 +23,6 @@ from archinstall.lib.packages.util import check_version_upgrade
 from archinstall.lib.profile.profiles_handler import profile_handler
 from archinstall.lib.translationhandler import tr
 from archinstall.preset import runtime as preset_runtime
-from archinstall.preset.options import SetupMode
 from archinstall.tui.components import tui
 
 
