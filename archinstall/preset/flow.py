@@ -10,6 +10,7 @@ answers pre-filled so the user can revise them.
 
 import sys
 
+from archinstall.default_profiles.profile import GreeterType
 from archinstall.lib.args import ArchConfigHandler
 from archinstall.lib.hardware import GfxDriver, SysInfo
 from archinstall.lib.log import debug, error, info
