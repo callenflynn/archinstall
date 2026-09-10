@@ -379,7 +379,6 @@ def _deploy_ml4w(
 	finally:
 		_revoke_temporary_sudo(grant_path)
 
-
 	_repair_home(installation, username)
 
 	if failures:
